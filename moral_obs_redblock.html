@@ -68,6 +68,7 @@ textarea {
 <div id="container"></div>
 
 <script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwThjUNemQ6a-9GJCubf5iMark3t9V-P_EjJNKhluwpeepdIMwRZuV2zT3quWFqt2eV2A/exec";
 
 const images = ["003_1.jpg","300_1.jpg","102_1.jpg","201_1.jpg","210_1.jpg"];
 
@@ -167,11 +168,11 @@ function render() {
   document.getElementById("container").innerHTML = `
     <h3>${(imageIndex * questions.length) + questionIndex + 1} / ${images.length * questions.length}</h3>
 
-    <img src="../img/${img}" alt="Stimolo">
+    <img src="/img/${img}" alt="Stimolo">
 
     <p><b>${q}</b></p>
 
-    <input type="range" id="slider" min="0" max="100" value="-10" class="slider" oninput="moved=true">
+    <input type="range" id="slider" min="0" max="100" value="0" class="slider" oninput="moved=true">
 
     <div class="labels">
       <span>Per niente</span>
@@ -220,9 +221,11 @@ function next() {
 function end() {
   document.getElementById("container").innerHTML = `
     <h1>Fine</h1>
-    <p>Hai completato il questionario.</p>
-    <button onclick="download()">Scarica dati</button>
+    <p>Invio delle risposte in corso...</p>
+    <div id="finalMsg"></div>
   `;
+
+  sendToSheet();
 }
 
 function download() {
@@ -237,6 +240,41 @@ function download() {
   a.href = URL.createObjectURL(blob);
   a.download = "risposte.csv";
   a.click();
+}
+
+
+async function sendToSheet() {
+  const payload = {
+    id: participantData.id,
+    sessione: participantData.sessione,
+    blocco: participantData.blocco,
+    tipo_agente: participantData.agente,
+    nome_agente: participantData.nomeAgente,
+    responses: responses
+  };
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      }
+    });
+
+    const result = await res.json();
+
+    if (result.ok) {
+      document.getElementById("finalMsg").innerHTML =
+        "<p style='color:green; font-weight:bold;'>Risposte salvate correttamente.</p>";
+    } else {
+      document.getElementById("finalMsg").innerHTML =
+        "<p style='color:red; font-weight:bold;'>Errore nel salvataggio.</p>";
+    }
+  } catch (err) {
+    document.getElementById("finalMsg").innerHTML =
+      "<p style='color:red; font-weight:bold;'>Errore di connessione.</p>";
+  }
 }
 
 intro();
