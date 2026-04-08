@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Questionario motivazioni</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 900px;
+  margin: auto;
+  padding: 30px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+img {
+  max-width: 100%;
+  max-height: 400px;
+  margin: 20px 0;
+}
+
+.slider {
+  width: 80%;
+  margin: 30px auto;
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  margin: auto;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 25px;
+  padding: 10px 25px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+  margin-top: 10px;
+}
+
+.form-row {
+  margin: 12px 0;
+}
+
+input, select, textarea {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+</style>
+</head>
+
+<body>
+<div id="container"></div>
+
+<script>
+
+const images = ["003_1.jpg","300_1.jpg","102_1.jpg","201_1.jpg","210_1.jpg"];
+
+const questions = [
+"In che misura {AGENTE} era motivato a fare qualcosa di moralmente buono?",
+"In che misura {AGENTE} era motivato a evitare di fare qualcosa di moralmente sbagliato?",
+"In che misura {AGENTE} era motivato a evitare di fare qualcosa di moralmente buono?",
+"In che misura {AGENTE} era motivato a fare qualcosa di moralmente sbagliato?",
+"In che misura {AGENTE} era motivato dalla propria identità personale o dai propri valori?",
+"In che misura {AGENTE} era motivato dalle conseguenze per sé stesso?",
+"In che misura {AGENTE} era motivato dalle conseguenze per il proprietario?",
+"In che misura {AGENTE} era motivato dal fatto che l’azione in sé fosse percepita come giusta o sbagliata, indipendentemente dai risultati?"
+];
+
+let responses = [];
+let imageIndex = 0;
+let questionIndex = 0;
+let participantData = {};
+let moved = false;
+
+function intro() {
+  document.getElementById("container").innerHTML = `
+    <h1>Istruzioni</h1>
+
+    <p>Per ogni scena, analizza la situazione dell’agente e valuta la probabilità delle motivazioni elencate.</p>
+
+    <p><b>Istruzioni:</b> seleziona ogni obiettivo, desiderio o tentazione che sia anche solo minimamente plausibile. Non limitarti alla reazione più ovvia: includi qualsiasi motivazione che potrebbe verificarsi almeno una volta su 100 situazioni identiche.</p>
+
+    <p><b>Scala di valutazione:</b> valuta la frequenza stimata su una scala da 0 a 100 in base alle immagini fornite.</p>
+
+    <p><b>Esempio rapido:</b> “Se l’azione potrebbe verificarsi anche in un solo caso isolato su cento, allora dovrebbe essere considerata valida”.</p>
+
+    <hr>
+
+    <div class="form-row">
+      <input id="id" placeholder="Numero soggetto">
+    </div>
+
+    <div class="form-row">
+      <input id="sessione" placeholder="Sessione">
+    </div>
+
+    <div class="form-row">
+      <input id="blocco" placeholder="Blocco">
+    </div>
+
+    <div class="form-row">
+      <select id="agente">
+        <option value="">Seleziona tipo di agente</option>
+        <option value="Amico">Amico</option>
+        <option value="Persona sgradita">Persona sgradita</option>
+        <option value="Sconosciuto">Sconosciuto</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <textarea id="note" placeholder="Nome dell’agente (es. Marco)" rows="2"></textarea>
+    </div>
+
+    <div class="error" id="err"></div>
+
+    <button onclick="start()">Avanti</button>
+  `;
+}
+
+function start() {
+  let id = document.getElementById("id").value.trim();
+  let sessione = document.getElementById("sessione").value.trim();
+  let blocco = document.getElementById("blocco").value.trim();
+  let agente = document.getElementById("agente").value;
+  let nomeAgente = document.getElementById("note").value.trim();
+
+  if (!id || !sessione || !blocco || !agente || !nomeAgente) {
+    document.getElementById("err").innerText = "Compila tutti i campi obbligatori, incluso il nome dell’agente.";
+    return;
+  }
+
+  participantData = {
+    id,
+    sessione,
+    blocco,
+    agente,
+    nomeAgente
+  };
+
+  imageIndex = 0;
+  questionIndex = 0;
+  render();
+}
+
+function render() {
+  let img = images[imageIndex];
+  let q = questions[questionIndex].replace("{AGENTE}", participantData.nomeAgente);
+
+  moved = false;
+
+  document.getElementById("container").innerHTML = `
+    <h3>${(imageIndex * questions.length) + questionIndex + 1} / ${images.length * questions.length}</h3>
+
+    <img src="../img/${img}" alt="Stimolo">
+
+    <p><b>${q}</b></p>
+
+    <input type="range" id="slider" min="0" max="100" value="-10" class="slider" oninput="moved=true">
+
+    <div class="labels">
+      <span>Per niente</span>
+      <span>Decisamente</span>
+    </div>
+
+    <div class="error" id="err"></div>
+
+    <button onclick="next()">Avanti</button>
+  `;
+}
+
+function next() {
+  let slider = document.getElementById("slider");
+
+  if (!moved) {
+    document.getElementById("err").innerText = "Sposta lo slider per selezionare una risposta";
+    return;
+  }
+
+  responses.push({
+    id: participantData.id,
+    sessione: participantData.sessione,
+    blocco: participantData.blocco,
+    tipo_agente: participantData.agente,
+    nome_agente: participantData.nomeAgente,
+    immagine: images[imageIndex],
+    domanda: questions[questionIndex].replace("{AGENTE}", participantData.nomeAgente),
+    risposta: slider.value
+  });
+
+  questionIndex++;
+
+  if (questionIndex >= questions.length) {
+    questionIndex = 0;
+    imageIndex++;
+  }
+
+  if (imageIndex >= images.length) {
+    end();
+  } else {
+    render();
+  }
+}
+
+function end() {
+  document.getElementById("container").innerHTML = `
+    <h1>Fine</h1>
+    <p>Hai completato il questionario.</p>
+    <button onclick="download()">Scarica dati</button>
+  `;
+}
+
+function download() {
+  let csv = "id,sessione,blocco,tipo_agente,nome_agente,immagine,domanda,risposta\n";
+
+  responses.forEach(r => {
+    csv += `"${r.id}","${r.sessione}","${r.blocco}","${r.tipo_agente}","${r.nome_agente}","${r.immagine}","${r.domanda.replace(/"/g, '""')}","${r.risposta}"\n`;
+  });
+
+  let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "risposte.csv";
+  a.click();
+}
+
+intro();
+
+</script>
+</body>
+</html>
