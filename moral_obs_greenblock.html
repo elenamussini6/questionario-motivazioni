@@ -73,14 +73,14 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwThjUNemQ6a-9GJCubf
 const images = ["003_1.jpg","012_1.jpg","021_1.jpg","030_1.jpg","120_1.jpg"];
 
 const questions = [
-"In che misura {AGENTE} era motivato a fare qualcosa di moralmente buono?",
-"In che misura {AGENTE} era motivato a evitare di fare qualcosa di moralmente sbagliato?",
-"In che misura {AGENTE} era motivato a evitare di fare qualcosa di moralmente buono?",
-"In che misura {AGENTE} era motivato a fare qualcosa di moralmente sbagliato?",
-"In che misura {AGENTE} era motivato dalla propria identità personale o dai propri valori?",
-"In che misura {AGENTE} era motivato dalle conseguenze per sé stesso?",
-"In che misura {AGENTE} era motivato dalle conseguenze per il proprietario?",
-"In che misura {AGENTE} era motivato dal fatto che l’azione in sé fosse percepita come giusta o sbagliata, indipendentemente dai risultati?"
+"Quanto, da 0 a 100, {AGENTE} era motivato a fare qualcosa di moralmente buono?",
+"Quanto, da 0 a 100, {AGENTE} era motivato a evitare di fare qualcosa di moralmente sbagliato?",
+"Quanto, da 0 a 100, {AGENTE} era motivato a evitare di fare qualcosa di moralmente buono?",
+"Quanto, da 0 a 100, {AGENTE} era motivato a fare qualcosa di moralmente sbagliato?",
+"Quanto, da 0 a 100, {AGENTE} era motivato dalla propria identità personale o dai propri valori?",
+"Quanto, da 0 a 100, {AGENTE} era motivato dalle conseguenze per sé stesso?",
+"Quanto, da 0 a 100, {AGENTE} era motivato dalle conseguenze per il proprietario?",
+"Quanto, da 0 a 100, {AGENTE} era motivato dal fatto che l’azione in sé fosse percepita come giusta o sbagliata, indipendentemente dai risultati?"
 ];
 
 let responses = [];
@@ -175,8 +175,8 @@ function render() {
     <input type="range" id="slider" min="0" max="100" value="0" class="slider" oninput="moved=true">
 
     <div class="labels">
-      <span>Per niente</span>
-      <span>Decisamente</span>
+      <span>0</span>
+      <span>100</span>
     </div>
 
     <div class="error" id="err"></div>
