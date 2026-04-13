@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Questionari Prosocialità</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 1000px;
+  margin: auto;
+  padding: 30px;
+  line-height: 1.5;
+}
+
+h1, h2, p {
+  text-align: center;
+}
+
+.form-section, .questions-section {
+  margin-top: 30px;
+}
+
+.form-row {
+  margin: 12px 0;
+  text-align: center;
+}
+
+input, select {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.question-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 18px;
+  margin: 18px 0;
+}
+
+.question-text {
+  font-weight: bold;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.block-intro {
+  border: 1px solid #bbb;
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 18px;
+  margin: 25px 0;
+  text-align: left;
+}
+
+.likert-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.likert-side {
+  font-size: 14px;
+  min-width: 120px;
+}
+
+.likert-options {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+}
+
+.likert-options label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 55px;
+}
+
+.likert-options input {
+  width: auto;
+  margin-bottom: 6px;
+}
+
+button {
+  display: block;
+  margin: 30px auto;
+  padding: 12px 28px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.success {
+  color: green;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+<div id="container"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX0MBymsNjQO-7qc1oInBldl9DVPpWuPT1QXiBbsGIq6fMcT-9tIfeMNhrHFHJA_vL/exec";
+
+const q1Intro = `
+Le seguenti affermazioni descrivono un gran numero di situazioni comuni.
+Non esistono risposte “giuste” o “sbagliate”; la risposta migliore è quella immediata e spontanea.
+Leggi attentamente ogni frase e indica la risposta che riflette la tua prima reazione.
+Per ciascuna affermazione, indica quanto è vera per te utilizzando la seguente scala:
+1 = mai/quasi mai vero
+2 = occasionalmente vero
+3 = a volte vero
+4 = spesso vero
+5 = quasi sempre/sempre vero
+`;
+
+const questionnaire1 = [
+  "Mi fa piacere aiutare i miei amici/colleghi nelle loro attività",
+  "Condivido le cose che ho con i miei amici",
+  "Cerco di aiutare gli altri",
+  "Sono disponibile a svolgere attività di volontariato per aiutare chi è nel bisogno",
+  "Sono empatico/a con chi è nel bisogno",
+  "Aiuto immediatamente chi è nel bisogno",
+  "Faccio ciò che posso per aiutare gli altri a evitare di mettersi nei guai",
+  "Sento intensamente ciò che gli altri provano",
+  "Sono disposto/a a mettere le mie conoscenze e capacità a disposizione degli altri",
+  "Cerco di consolare chi è triste",
+  "Presto facilmente denaro o altre cose",
+  "Mi metto facilmente nei panni di chi si trova in difficoltà",
+  "Cerco di stare vicino e prendermi cura di chi è nel bisogno",
+  "Condivido facilmente con gli amici ogni buona opportunità che mi si presenta",
+  "Dedico tempo agli amici che si sentono soli",
+  "Percepisco immediatamente il disagio dei miei amici anche quando non mi viene comunicato direttamente"
+];
+
+const q2Intro = `
+Di seguito sono elencate alcune situazioni in cui potresti aiutare altre persone.
+Immagina che ciascuna di queste situazioni si presenti realmente.
+Indica quanto saresti disposto/a a mettere in atto ciascun comportamento.
+Non esistono risposte “giuste” o “sbagliate”: rispondi in modo spontaneo, in base a ciò che faresti davvero.
+Se un’affermazione include più esempi, rispondi pensando all’azione che saresti più propenso/a a compiere.
+
+Scala di risposta (Likert 1–7)
+1 = Sicuramente non lo farei
+2 = Probabilmente non lo farei
+3 = Poco probabile
+4 = Né probabile né improbabile
+5 = Abbastanza probabile
+6 = Probabilmente lo farei
+7 = Sicuramente lo farei
+`;
+
+const questionnaire2 = [
+  "Consolare qualcuno che conosco dopo che ha vissuto una difficoltà",
+  "Prendermi cura di un amico o parente malato",
+  "Aiutare uno sconosciuto a trovare qualcosa che ha perso (es. chiavi o animale domestico)",
+  "Aiutare uno sconosciuto con un piccolo compito (es. portare la spesa, sorvegliare i suoi oggetti)"
+];
+
+let participantData = {};
+let q1Responses = [];
+let q2Responses = [];
+
+function renderIntro() {
+  document.getElementById("container").innerHTML = `
+    <h1>Questionari</h1>
+    <p>Compila i dati iniziali e premi Avanti.</p>
+
+    <div class="form-section">
+      <div class="form-row">
+        <input id="id" placeholder="Numero partecipante">
+      </div>
+
+      <div class="form-row">
+        <select id="sesso">
+          <option value="">Seleziona sesso</option>
+          <option value="Maschio">Maschio</option>
+          <option value="Femmina">Femmina</option>
+          <option value="Altro">Altro</option>
+          <option value="Preferisco non rispondere">Preferisco non rispondere</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <input id="dataNascita" type="date">
+      </div>
+
+      <div class="form-row">
+        <input id="altezza" type="number" step="0.1" placeholder="Altezza (cm)">
+      </div>
+
+      <div class="form-row">
+        <input id="peso" type="number" step="0.1" placeholder="Peso (kg)">
+      </div>
+    </div>
+
+    <div id="err" class="error"></div>
+    <button onclick="goToQ1()">Avanti</button>
+  `;
+}
+
+function renderQuestionList(questions, namePrefix, options, leftLabel, rightLabel, startIndex = 1) {
+  return questions.map((q, i) => `
+    <div class="question-item">
+      <div class="question-text">${startIndex + i}. ${q}</div>
+      <div class="likert-row">
+        <div class="likert-side">${leftLabel}</div>
+        <div class="likert-options">
+          ${options.map(opt => `
+            <label>
+              <input type="radio" name="${namePrefix}${i}" value="${opt.value}">
+              ${opt.label}
+            </label>
+          `).join("")}
+        </div>
+        <div class="likert-side" style="text-align:right;">${rightLabel}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function goToQ1() {
+  const id = document.getElementById("id").value.trim();
+  const sesso = document.getElementById("sesso").value;
+  const dataNascita = document.getElementById("dataNascita").value;
+  const altezza = document.getElementById("altezza").value.trim();
+  const peso = document.getElementById("peso").value.trim();
+
+  if (!id || !sesso || !dataNascita || !altezza || !peso) {
+    document.getElementById("err").innerText = "Compila tutti i dati iniziali.";
+    return;
+  }
+
+  participantData = { id, sesso, data_nascita: dataNascita, altezza, peso };
+
+  const options15 = [
+    { value: 1, label: "1" },
+    { value: 2, label: "2" },
+    { value: 3, label: "3" },
+    { value: 4, label: "4" },
+    { value: 5, label: "5" }
+  ];
+
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario 1</h1>
+    <div class="block-intro">${q1Intro.replace(/\n/g, "<br>")}</div>
+
+    <div class="questions-section">
+      ${renderQuestionList(questionnaire1, "q1_", options15, "Mai/quasi mai vero", "Quasi sempre/sempre vero", 1)}
+    </div>
+
+    <div id="err" class="error"></div>
+    <button onclick="goToQ2()">Avanti</button>
+  `;
+}
+
+function goToQ2() {
+  q1Responses = [];
+
+  for (let i = 0; i < questionnaire1.length; i++) {
+    const selected = document.querySelector(`input[name="q1_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del Questionario 1. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    q1Responses.push({
+      ...participantData,
+      questionario: "Questionario1",
+      scala: "1-5",
+      item: i + 1,
+      domanda: questionnaire1[i],
+      risposta: selected.value
+    });
+  }
+
+  const options17 = [
+    { value: 1, label: "1" },
+    { value: 2, label: "2" },
+    { value: 3, label: "3" },
+    { value: 4, label: "4" },
+    { value: 5, label: "5" },
+    { value: 6, label: "6" },
+    { value: 7, label: "7" }
+  ];
+
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario 2</h1>
+    <div class="block-intro">${q2Intro.replace(/\n/g, "<br>")}</div>
+
+    <div class="questions-section">
+      ${renderQuestionList(questionnaire2, "q2_", options17, "Sicuramente non lo farei", "Sicuramente lo farei", 1)}
+    </div>
+
+    <div id="err" class="error"></div>
+    <div id="msg"></div>
+    <button onclick="submitAll()">Invia</button>
+  `;
+}
+
+async function submitAll() {
+  q2Responses = [];
+
+  for (let i = 0; i < questionnaire2.length; i++) {
+    const selected = document.querySelector(`input[name="q2_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del Questionario 2. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    q2Responses.push({
+      ...participantData,
+      questionario: "Questionario2",
+      scala: "1-7",
+      item: i + 1,
+      domanda: questionnaire2[i],
+      risposta: selected.value
+    });
+  }
+
+  const allResponses = [...q1Responses, ...q2Responses];
+
+  document.getElementById("err").innerText = "";
+  document.getElementById("msg").innerHTML = "<p>Invio delle risposte in corso...</p>";
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ responses: allResponses }),
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      }
+    });
+
+    const result = await res.json();
+
+    if (result.ok) {
+      document.getElementById("msg").innerHTML =
+        "<p class='success'>Risposte salvate correttamente.</p>";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      document.getElementById("msg").innerHTML =
+        "<p class='error'>Errore nel salvataggio: " + (result.error || "sconosciuto") + "</p>";
+    }
+  } catch (err) {
+    document.getElementById("msg").innerHTML =
+      "<p class='error'>Errore di connessione: " + err.message + "</p>";
+  }
+}
+
+renderIntro();
+</script>
+</body>
+</html>

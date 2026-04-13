@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Questionari MAIA + BPQ</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 1000px;
+  margin: auto;
+  padding: 30px;
+  line-height: 1.5;
+}
+
+h1, h2, p {
+  text-align: center;
+}
+
+.form-section, .questions-section {
+  margin-top: 30px;
+}
+
+.form-row {
+  margin: 12px 0;
+  text-align: center;
+}
+
+input, select {
+  width: 100%;
+  max-width: 420px;
+  padding: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.question-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 18px;
+  margin: 18px 0;
+}
+
+.question-text {
+  font-weight: bold;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.block-intro {
+  border: 1px solid #bbb;
+  background: #f8f8f8;
+  border-radius: 8px;
+  padding: 18px;
+  margin: 25px 0;
+  text-align: left;
+}
+
+.likert-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.likert-side {
+  font-size: 14px;
+  min-width: 90px;
+}
+
+.likert-options {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+}
+
+.likert-options label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 50px;
+}
+
+.likert-options input {
+  width: auto;
+  margin-bottom: 6px;
+}
+
+button {
+  display: block;
+  margin: 30px auto;
+  padding: 12px 28px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.success {
+  color: green;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+<div id="container"></div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzM-nfZumcPqsO2-rXL0olLNa--ts_j5ZTcqyL3vgo-J2eV5MGYliYE-YQ1Twuhz3EmCw/exec";
+
+const maiaQuestions = [
+  "Quando provo dolore o disagio, cerco comunque di andare avanti con quello che stavo facendo",
+  "Provo ad ignorare il dolore",
+  "Allontano le sensazioni di fastidio focalizzandomi su qualcosa",
+  "Quando provo sensazioni corporee spiacevoli, mi occupo di qualcos'altro, così non devo sentirle",
+  "Quando sento un dolore fisico, mi agito",
+  "Inizio a preoccuparmi che ci sia qualcosa che non va se percepisco un disagio",
+  "Posso notare una sensazione corporea spiacevole senza preoccuparmene",
+  "Quando sono a disagio o provo dolore non riesco a togliermelo dalla mente",
+  "Posso prestare attenzione sul mio respiro senza farmi distrarre dalle cose che succedono attorno a me",
+  "Posso mantenere la consapevolezza delle mie sensazioni fisiche interiori anche se attorno a me avvengono molte cose",
+  "Posso ritrovare la consapevolezza del mio corpo se sono distratto",
+  "Riesco a mantenere la consapevolezza del mio corpo nella sua interezza anche quando una parte di me è dolorante o a disagio",
+  "Sono capace di focalizzarmi intenzionalmente sul mio corpo nella sua interezza",
+  "Noto di sentire il mio corpo diverso dopo un’esperienza serena",
+  "Noto che il mio respiro diventa libero e agevole quando mi sento a mio agio",
+  "Noto come il mio corpo cambia quando mi sento felice/gioioso",
+  "Nel mio corpo mi sento a casa",
+  "Sento che il mio corpo è un posto sicuro",
+  "Mi fido delle sensazioni del mio corpo"
+];
+
+const bpqBlock1 = [
+  "Avere gli occhi inumiditi o che stanno lacrimando",
+  "Una sensazione di gonfiore del mio corpo o di parti del mio corpo",
+  "Avere la pelle d’oca",
+  "Dolori di stomaco e intestino",
+  "Un senso di gonfiore o dilatazione dello stomaco",
+  "Sentire i palmi delle mani sudati",
+  "Sudorazione della fronte",
+  "Tremore delle labbra",
+  "Sudorazione delle ascelle",
+  "Quale sia la temperatura del viso (in particolare delle orecchie)"
+];
+
+const bpqBlock2Intro = `
+Il sistema nervoso autonomo è la parte del suo sistema nervoso che regola il suo sistema cardiovascolare,
+respiratorio, digestivo e di regolazione della temperatura corporea. Inoltre, è coinvolto nell’esperienza e
+nell’espressione delle emozioni. Il sistema nervoso autonomo, in ognuno di noi, può funzionare in maniera
+diversa. Questa scala è stata sviluppata per misurare il modo in cui reagisce il suo sistema nervoso autonomo.
+Per favore, valuti quanto ciascuna delle seguenti affermazioni sia frequente per lei:
+`;
+
+const bpqBlock2 = [
+  "Ho difficoltà a coordinare la respirazione mentre mangio",
+  "Quando mangio, ho difficoltà a parlare",
+  "Ho difficoltà a coordinare la respirazione con il parlare",
+  "Quando mangio, ho difficoltà a coordinare la deglutizione, la masticazione e/o il succhiare con la respirazione",
+  "Ho una tosse persistente che interferisce con il mio parlare e mangiare",
+  "Mi sento soffocare quando mangio",
+  "Quando parlo, spesso sento che dovrei tossire o deglutire la saliva che ho in bocca",
+  "Quando respiro, sento di non riuscire ad avere abbastanza ossigeno",
+  "Ho acidità di stomaco",
+  "Ho un’indigestione",
+  "Dopo aver mangiato ho problemi digestivi",
+  "Ho la diarrea"
+];
+
+let participantData = {};
+let maiaResponses = [];
+let bpqResponses = [];
+
+function renderIntro() {
+  document.getElementById("container").innerHTML = `
+    <h1>Questionari</h1>
+    <p>Compila i dati iniziali e premi Avanti.</p>
+
+    <div class="form-section">
+      <div class="form-row">
+        <input id="id" placeholder="Numero partecipante">
+      </div>
+
+      <div class="form-row">
+        <select id="sesso">
+          <option value="">Seleziona sesso</option>
+          <option value="Maschio">Maschio</option>
+          <option value="Femmina">Femmina</option>
+          <option value="Altro">Altro</option>
+          <option value="Preferisco non rispondere">Preferisco non rispondere</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <input id="dataNascita" type="date">
+      </div>
+
+      <div class="form-row">
+        <input id="altezza" type="number" step="0.1" placeholder="Altezza (cm)">
+      </div>
+
+      <div class="form-row">
+        <input id="peso" type="number" step="0.1" placeholder="Peso (kg)">
+      </div>
+    </div>
+
+    <div id="err" class="error"></div>
+    <button onclick="goToMAIA()">Avanti</button>
+  `;
+}
+
+function renderQuestionList(questions, namePrefix, options, leftLabel, rightLabel, startIndex = 1) {
+  return questions.map((q, i) => `
+    <div class="question-item">
+      <div class="question-text">${startIndex + i}. ${q}</div>
+      <div class="likert-row">
+        <div class="likert-side">${leftLabel}</div>
+        <div class="likert-options">
+          ${options.map(opt => `
+            <label>
+              <input type="radio" name="${namePrefix}${i}" value="${opt.value}">
+              ${opt.label}
+            </label>
+          `).join("")}
+        </div>
+        <div class="likert-side" style="text-align:right;">${rightLabel}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function goToMAIA() {
+  const id = document.getElementById("id").value.trim();
+  const sesso = document.getElementById("sesso").value;
+  const dataNascita = document.getElementById("dataNascita").value;
+  const altezza = document.getElementById("altezza").value.trim();
+  const peso = document.getElementById("peso").value.trim();
+
+  if (!id || !sesso || !dataNascita || !altezza || !peso) {
+    document.getElementById("err").innerText = "Compila tutti i dati iniziali.";
+    return;
+  }
+
+  participantData = { id, sesso, data_nascita: dataNascita, altezza, peso };
+
+  const options = [
+    { value: 0, label: "0" },
+    { value: 1, label: "1" },
+    { value: 2, label: "2" },
+    { value: 3, label: "3" },
+    { value: 4, label: "4" },
+    { value: 5, label: "5" }
+  ];
+
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario MAIA</h1>
+    <p>Di seguito troverai una lista di affermazioni. Per favore indica quanto spesso ciascuna affermazione si riferisce generalmente alla tua vita quotidiana.</p>
+    <p><b>Scala di risposta:</b> da <b>0 = Mai</b> a <b>5 = Sempre</b>.</p>
+
+    <div class="questions-section">
+      ${renderQuestionList(maiaQuestions, "maia_q", options, "Mai", "Sempre", 1)}
+    </div>
+
+    <div id="err" class="error"></div>
+    <button onclick="goToBPQ()">Avanti</button>
+  `;
+}
+
+function goToBPQ() {
+  maiaResponses = [];
+
+  for (let i = 0; i < maiaQuestions.length; i++) {
+    const selected = document.querySelector(`input[name="maia_q${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del MAIA. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    maiaResponses.push({
+      ...participantData,
+      questionario: "MAIA",
+      item: i + 1,
+      domanda: maiaQuestions[i],
+      risposta: selected.value
+    });
+  }
+
+  const bpqOptions = [
+    { value: "Mai", label: "Mai" },
+    { value: "Occasionalmente", label: "Occasionalmente" },
+    { value: "Spesso", label: "Spesso" }
+  ];
+
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario BPQ</h1>
+    <p>Per favore, valuti il suo livello di consapevolezza per ciascuna delle caratteristiche descritte di seguito.</p>
+    <p>Selezioni la risposta che la descrive più precisamente.</p>
+
+    <h2>Blocco 1</h2>
+    <p><b>Nella maggior parte delle situazioni sono consapevole di:</b></p>
+    <div class="questions-section">
+      ${renderQuestionList(bpqBlock1, "bpq_q", bpqOptions, "Mai", "Spesso", 1)}
+    </div>
+
+    <div class="block-intro">
+      ${bpqBlock2Intro.replace(/\n/g, "<br>")}
+    </div>
+
+    <h2>Blocco 2</h2>
+    <div class="questions-section">
+      ${renderQuestionList(bpqBlock2, "bpq_q_b2_", bpqOptions, "Mai", "Spesso", 11)}
+    </div>
+
+    <div id="err" class="error"></div>
+    <div id="msg"></div>
+    <button onclick="submitAll()">Invia</button>
+  `;
+}
+
+async function submitAll() {
+  bpqResponses = [];
+
+  for (let i = 0; i < bpqBlock1.length; i++) {
+    const selected = document.querySelector(`input[name="bpq_q${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del BPQ. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    bpqResponses.push({
+      ...participantData,
+      questionario: "BPQ",
+      item: i + 1,
+      domanda: bpqBlock1[i],
+      risposta: selected.value
+    });
+  }
+
+  for (let i = 0; i < bpqBlock2.length; i++) {
+    const selected = document.querySelector(`input[name="bpq_q_b2_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del BPQ. Manca la domanda ${i + 11}.`;
+      return;
+    }
+
+    bpqResponses.push({
+      ...participantData,
+      questionario: "BPQ",
+      item: i + 11,
+      domanda: bpqBlock2[i],
+      risposta: selected.value
+    });
+  }
+
+  const allResponses = [...maiaResponses, ...bpqResponses];
+
+  document.getElementById("err").innerText = "";
+  document.getElementById("msg").innerHTML = "<p>Invio delle risposte in corso...</p>";
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ responses: allResponses }),
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      }
+    });
+
+    const result = await res.json();
+
+    if (result.ok) {
+      document.getElementById("msg").innerHTML =
+        "<p class='success'>Risposte salvate correttamente.</p>";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      document.getElementById("msg").innerHTML =
+        "<p class='error'>Errore nel salvataggio: " + (result.error || "sconosciuto") + "</p>";
+    }
+  } catch (err) {
+    document.getElementById("msg").innerHTML =
+      "<p class='error'>Errore di connessione: " + err.message + "</p>";
+  }
+}
+
+renderIntro();
+</script>
+</body>
+</html>
