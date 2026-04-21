@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<title>Questionari Prosocialità</title>
+<title>Questionari</title>
 
 <style>
 body {
@@ -54,6 +54,7 @@ input, select {
   padding: 18px;
   margin: 25px 0;
   text-align: left;
+  white-space: pre-line;
 }
 
 .likert-row {
@@ -66,7 +67,7 @@ input, select {
 
 .likert-side {
   font-size: 14px;
-  min-width: 120px;
+  min-width: 140px;
 }
 
 .likert-options {
@@ -120,6 +121,10 @@ button {
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxX0MBymsNjQO-7qc1oInBldl9DVPpWuPT1QXiBbsGIq6fMcT-9tIfeMNhrHFHJA_vL/exec";
+
+/* =========================
+   QUESTIONARI ORIGINALI
+========================= */
 
 const q1Intro = `
 Le seguenti affermazioni descrivono un gran numero di situazioni comuni.
@@ -176,9 +181,144 @@ const questionnaire2 = [
   "Aiutare uno sconosciuto con un piccolo compito (es. portare la spesa, sorvegliare i suoi oggetti)"
 ];
 
+/* =========================
+   NUOVI QUESTIONARI
+========================= */
+
+const masIntro = `
+Di seguito sono riportate alcune affermazioni che riguardano il modo in cui ti assumi la responsabilità delle tue azioni e delle loro conseguenze.
+Immagina di riflettere sul tuo comportamento nella vita quotidiana.
+Indica quanto sei d’accordo con ciascuna affermazione, basandoti su ciò che pensi davvero.
+Non esistono risposte “giuste” o “sbagliate”: rispondi in modo spontaneo e sincero.
+
+Scala di risposta (Likert 1–7)
+1 = Fortemente in disaccordo
+2 = In disaccordo
+3 = Abbastanza in disaccordo
+4 = Né d’accordo né in disaccordo
+5 = Abbastanza d’accordo
+6 = D’accordo
+7 = Fortemente d’accordo
+`;
+
+const questionnaireMAS = [
+  "Mi sento responsabile delle conseguenze delle mie azioni.",
+  "Cerco di fare ciò che è giusto, anche quando è difficile.",
+  "Quando faccio qualcosa di sbagliato, cerco di rimediare.",
+  "Le mie scelte dipendono principalmente da me.",
+  "Mi impegno a comportarmi in modo coerente con i miei valori morali.",
+  "Anche quando nessuno mi osserva, cerco di fare la cosa giusta.",
+  "Quando prendo una decisione, considero le conseguenze per gli altri.",
+  "Mi assumo la responsabilità dei miei errori.",
+  "A volte mi comporto senza pensare alle conseguenze. (reverse)",
+  "Se qualcosa va storto, tendo a dare la colpa agli altri. (reverse)",
+  "Cerco di controllare il mio comportamento anche in situazioni difficili.",
+  "Le mie azioni riflettono ciò che penso sia giusto o sbagliato."
+];
+
+const iriIntro = `
+Di seguito sono riportate alcune affermazioni riguardanti pensieri e reazioni che le persone possono avere nelle situazioni quotidiane.
+Indica quanto ciascuna affermazione ti descrive.
+Non esistono risposte giuste o sbagliate: rispondi in modo spontaneo e sincero.
+
+Scala di risposta (Likert 1–5)
+1 = Non mi descrive per niente
+2 = Mi descrive poco
+3 = Mi descrive abbastanza
+4 = Mi descrive molto
+5 = Mi descrive perfettamente
+`;
+
+const questionnaireIRI = [
+  "Spesso mi immedesimo nei personaggi di un romanzo o di un film.",
+  "Riesco facilmente a mettermi nei panni dei personaggi di un racconto o di un film.",
+  "Quando guardo un film, riesco molto facilmente a mettermi nei panni di un personaggio.",
+  "Quando leggo una storia interessante, immagino come mi sentirei se gli avvenimenti della storia accadessero a me.",
+  "Mi immedesimo nei personaggi dei film o dei romanzi.",
+  "Dopo aver visto uno spettacolo teatrale o un film, mi sento coinvolto/a come se fosse una storia vera.",
+  "Spesso provo sentimenti di tenerezza e di preoccupazione per le persone meno fortunate di me.",
+  "A volte non mi sento molto dispiaciuto/a per altre persone quando hanno dei problemi. (reverse)",
+  "Quando vedo qualcuno che viene sfruttato, provo sentimenti di protezione nei suoi confronti.",
+  "Quando vedo qualcuno che viene trattato ingiustamente, talvolta mi sento di proteggerlo.",
+  "Ho spesso profondi sentimenti di compassione per le persone meno fortunate di me.",
+  "Quando vedo qualcuno in difficoltà, provo sentimenti di tenerezza.",
+  "A volte cerco di comprendere meglio i miei amici immaginando come le cose appaiono dalla loro prospettiva.",
+  "Se non sono sicuro/a di avere ragione riguardo a qualcosa, non sposo molto la mia idea ma ascolto le argomentazioni degli altri.",
+  "Cerco di considerare tutti gli aspetti prima di prendere una decisione.",
+  "Quando sono in disaccordo con qualcuno, cerco di “mettermi nei suoi panni” per un attimo.",
+  "Prima di criticare qualcuno, cerco di immaginare cosa proverei se fossi al suo posto.",
+  "Quando devo decidere, cerco di considerare il punto di vista degli altri.",
+  "In situazioni di emergenza, mi sento a disagio.",
+  "Quando vedo qualcuno ferirsi, mi sento a disagio.",
+  "Trovandomi in situazioni che provocano tensione emotiva, mi spavento.",
+  "Sono facilmente coinvolto/a emotivamente nelle situazioni di emergenza.",
+  "Tendo a perdere il controllo in situazioni di forte stress.",
+  "Quando vedo qualcuno che ha bisogno di aiuto in una situazione di emergenza, mi sento a disagio."
+];
+
+const identitaIntro = `
+Di seguito sono riportate alcune affermazioni che riguardano il modo in cui percepisci te stesso/a.
+Leggi attentamente ciascuna affermazione e indica quanto sei d’accordo, basandoti su ciò che pensi davvero.
+Non esistono risposte “giuste” o “sbagliate”: rispondi in modo spontaneo e sincero.
+
+Scala di risposta (Likert 1–7)
+1 = Fortemente in disaccordo
+2 = In disaccordo
+3 = Abbastanza in disaccordo
+4 = Né d’accordo né in disaccordo
+5 = Abbastanza d’accordo
+6 = D’accordo
+7 = Fortemente d’accordo
+`;
+
+const questionnaireIdentita = [
+  "In generale, ho un’idea chiara di chi sono e di cosa sono.",
+  "Le mie convinzioni su me stesso/a cambiano spesso. (reverse)",
+  "Trovo difficile definire me stesso/a. (reverse)",
+  "Le mie opinioni su di me sono molto stabili nel tempo.",
+  "A volte sento di non sapere davvero chi sono. (reverse)",
+  "Ho una visione coerente di me stesso/a.",
+  "Il modo in cui mi descrivo cambia spesso a seconda della situazione. (reverse)",
+  "Ho un’identità ben definita.",
+  "Mi capita di sentirmi confuso/a riguardo a chi sono. (reverse)",
+  "Le mie caratteristiche personali sono chiare e ben definite."
+];
+
 let participantData = {};
-let q1Responses = [];
-let q2Responses = [];
+
+let responses1 = [];
+let responses2 = [];
+let responsesMAS = [];
+let responsesIRI = [];
+let responsesIdentita = [];
+
+function makeOptions(min, max) {
+  const options = [];
+  for (let i = min; i <= max; i++) {
+    options.push({ value: i, label: String(i) });
+  }
+  return options;
+}
+
+function renderQuestionList(questions, namePrefix, options, leftLabel, rightLabel, startIndex = 1) {
+  return questions.map((q, i) => `
+    <div class="question-item">
+      <div class="question-text">${startIndex + i}. ${q}</div>
+      <div class="likert-row">
+        <div class="likert-side">${leftLabel}</div>
+        <div class="likert-options">
+          ${options.map(opt => `
+            <label>
+              <input type="radio" name="${namePrefix}${i}" value="${opt.value}">
+              ${opt.label}
+            </label>
+          `).join("")}
+        </div>
+        <div class="likert-side" style="text-align:right;">${rightLabel}</div>
+      </div>
+    </div>
+  `).join("");
+}
 
 function renderIntro() {
   document.getElementById("container").innerHTML = `
@@ -218,26 +358,6 @@ function renderIntro() {
   `;
 }
 
-function renderQuestionList(questions, namePrefix, options, leftLabel, rightLabel, startIndex = 1) {
-  return questions.map((q, i) => `
-    <div class="question-item">
-      <div class="question-text">${startIndex + i}. ${q}</div>
-      <div class="likert-row">
-        <div class="likert-side">${leftLabel}</div>
-        <div class="likert-options">
-          ${options.map(opt => `
-            <label>
-              <input type="radio" name="${namePrefix}${i}" value="${opt.value}">
-              ${opt.label}
-            </label>
-          `).join("")}
-        </div>
-        <div class="likert-side" style="text-align:right;">${rightLabel}</div>
-      </div>
-    </div>
-  `).join("");
-}
-
 function goToQ1() {
   const id = document.getElementById("id").value.trim();
   const sesso = document.getElementById("sesso").value;
@@ -252,29 +372,19 @@ function goToQ1() {
 
   participantData = { id, sesso, data_nascita: dataNascita, altezza, peso };
 
-  const options15 = [
-    { value: 1, label: "1" },
-    { value: 2, label: "2" },
-    { value: 3, label: "3" },
-    { value: 4, label: "4" },
-    { value: 5, label: "5" }
-  ];
-
   document.getElementById("container").innerHTML = `
     <h1>Questionario 1</h1>
-    <div class="block-intro">${q1Intro.replace(/\n/g, "<br>")}</div>
-
+    <div class="block-intro">${q1Intro}</div>
     <div class="questions-section">
-      ${renderQuestionList(questionnaire1, "q1_", options15, "Mai/quasi mai vero", "Quasi sempre/sempre vero", 1)}
+      ${renderQuestionList(questionnaire1, "q1_", makeOptions(1, 5), "Mai/quasi mai vero", "Quasi sempre/sempre vero")}
     </div>
-
     <div id="err" class="error"></div>
     <button onclick="goToQ2()">Avanti</button>
   `;
 }
 
 function goToQ2() {
-  q1Responses = [];
+  responses1 = [];
 
   for (let i = 0; i < questionnaire1.length; i++) {
     const selected = document.querySelector(`input[name="q1_${i}"]:checked`);
@@ -283,7 +393,7 @@ function goToQ2() {
       return;
     }
 
-    q1Responses.push({
+    responses1.push({
       ...participantData,
       questionario: "Questionario1",
       scala: "1-5",
@@ -293,32 +403,19 @@ function goToQ2() {
     });
   }
 
-  const options17 = [
-    { value: 1, label: "1" },
-    { value: 2, label: "2" },
-    { value: 3, label: "3" },
-    { value: 4, label: "4" },
-    { value: 5, label: "5" },
-    { value: 6, label: "6" },
-    { value: 7, label: "7" }
-  ];
-
   document.getElementById("container").innerHTML = `
     <h1>Questionario 2</h1>
-    <div class="block-intro">${q2Intro.replace(/\n/g, "<br>")}</div>
-
+    <div class="block-intro">${q2Intro}</div>
     <div class="questions-section">
-      ${renderQuestionList(questionnaire2, "q2_", options17, "Sicuramente non lo farei", "Sicuramente lo farei", 1)}
+      ${renderQuestionList(questionnaire2, "q2_", makeOptions(1, 7), "Sicuramente non lo farei", "Sicuramente lo farei")}
     </div>
-
     <div id="err" class="error"></div>
-    <div id="msg"></div>
-    <button onclick="submitAll()">Invia</button>
+    <button onclick="goToMAS()">Avanti</button>
   `;
 }
 
-async function submitAll() {
-  q2Responses = [];
+function goToMAS() {
+  responses2 = [];
 
   for (let i = 0; i < questionnaire2.length; i++) {
     const selected = document.querySelector(`input[name="q2_${i}"]:checked`);
@@ -327,7 +424,7 @@ async function submitAll() {
       return;
     }
 
-    q2Responses.push({
+    responses2.push({
       ...participantData,
       questionario: "Questionario2",
       scala: "1-7",
@@ -337,7 +434,107 @@ async function submitAll() {
     });
   }
 
-  const allResponses = [...q1Responses, ...q2Responses];
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario 3 - MAS</h1>
+    <div class="block-intro">${masIntro}</div>
+    <div class="questions-section">
+      ${renderQuestionList(questionnaireMAS, "mas_", makeOptions(1, 7), "Fortemente in disaccordo", "Fortemente d’accordo")}
+    </div>
+    <div id="err" class="error"></div>
+    <button onclick="goToIRI()">Avanti</button>
+  `;
+}
+
+function goToIRI() {
+  responsesMAS = [];
+
+  for (let i = 0; i < questionnaireMAS.length; i++) {
+    const selected = document.querySelector(`input[name="mas_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del Questionario MAS. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    responsesMAS.push({
+      ...participantData,
+      questionario: "MAS",
+      scala: "1-7",
+      item: i + 1,
+      domanda: questionnaireMAS[i],
+      risposta: selected.value
+    });
+  }
+
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario 4 - IRI</h1>
+    <div class="block-intro">${iriIntro}</div>
+    <div class="questions-section">
+      ${renderQuestionList(questionnaireIRI, "iri_", makeOptions(1, 5), "Non mi descrive per niente", "Mi descrive perfettamente")}
+    </div>
+    <div id="err" class="error"></div>
+    <button onclick="goToIdentita()">Avanti</button>
+  `;
+}
+
+function goToIdentita() {
+  responsesIRI = [];
+
+  for (let i = 0; i < questionnaireIRI.length; i++) {
+    const selected = document.querySelector(`input[name="iri_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del Questionario IRI. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    responsesIRI.push({
+      ...participantData,
+      questionario: "IRI",
+      scala: "1-5",
+      item: i + 1,
+      domanda: questionnaireIRI[i],
+      risposta: selected.value
+    });
+  }
+
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario 5</h1>
+    <div class="block-intro">${identitaIntro}</div>
+    <div class="questions-section">
+      ${renderQuestionList(questionnaireIdentita, "identita_", makeOptions(1, 7), "Fortemente in disaccordo", "Fortemente d’accordo")}
+    </div>
+    <div id="err" class="error"></div>
+    <div id="msg"></div>
+    <button onclick="submitAll()">Invia</button>
+  `;
+}
+
+async function submitAll() {
+  responsesIdentita = [];
+
+  for (let i = 0; i < questionnaireIdentita.length; i++) {
+    const selected = document.querySelector(`input[name="identita_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del Questionario 5. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    responsesIdentita.push({
+      ...participantData,
+      questionario: "Identita",
+      scala: "1-7",
+      item: i + 1,
+      domanda: questionnaireIdentita[i],
+      risposta: selected.value
+    });
+  }
+
+  const allResponses = [
+    ...responses1,
+    ...responses2,
+    ...responsesMAS,
+    ...responsesIRI,
+    ...responsesIdentita
+  ];
 
   document.getElementById("err").innerText = "";
   document.getElementById("msg").innerHTML = "<p>Invio delle risposte in corso...</p>";
