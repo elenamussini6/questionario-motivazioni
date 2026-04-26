@@ -284,6 +284,57 @@ const questionnaireIdentita = [
   "Le mie caratteristiche personali sono chiare e ben definite."
 ];
 
+const mfiIntro = `
+Di seguito sono riportate alcune affermazioni riguardanti valori e giudizi morali.
+Per ciascuna affermazione, indica quanto sei d’accordo o in disaccordo.
+Utilizza la seguente scala di risposta:
+1 = Fortemente in disaccordo
+2 = In disaccordo
+3 = Leggermente in disaccordo
+4 = Leggermente d’accordo
+5 = D’accordo
+6 = Fortemente d’accordo
+`;
+
+const questionnaireMFI = [
+  "Prendersi cura delle persone che hanno sofferto è una virtù importante.",
+  "Il mondo sarebbe un posto migliore se tutti guadagnassero la stessa quantità di denaro.",
+  "Penso che le persone che lavorano di più dovrebbero avere più soldi.",
+  "Penso che si debba insegnare ai bambini a essere leali nei confronti del proprio Paese.",
+  "Penso che sia importante che le società mantengano i loro valori tradizionali.",
+  "Penso che il corpo umano debba essere trattato come un tempio, che ospita qualcosa di sacro al suo interno.",
+  "Credo che la compassione per chi soffre sia una delle virtù più importanti.",
+  "La nostra società avrebbe meno problemi se le persone avessero lo stesso reddito.",
+  "Credo che le persone debbano essere ricompensate in proporzione al loro contributo.",
+  "Mi dà fastidio quando le persone non sono leali nei confronti del proprio Paese.",
+  "Ritengo che la maggior parte delle tradizioni abbia una funzione preziosa nel mantenere l'ordine della società.",
+  "Credo che la castità sia una virtù importante.",
+  "Tutti noi dovremmo occuparci delle persone che soffrono emotivamente.",
+  "Credo che tutti debbano avere la stessa quantità di risorse nella vita.",
+  "L'impegno che un lavoratore mette in un lavoro dovrebbe riflettersi nell'entità della ricompensa che riceve.",
+  "Tutti dovrebbero amare la propria comunità.",
+  "Credo che l'obbedienza ai genitori sia una virtù importante.",
+  "Mi dà fastidio quando le persone usano un linguaggio scurrile come se nulla fosse.",
+  "Sono empatico con le persone che hanno sofferto nella loro vita.",
+  "Credo che sarebbe ideale se tutti nella società finissero per avere all'incirca la stessa quantità di denaro.",
+  "Sono felice quando le persone vengono riconosciute per i loro meriti.",
+  "Tutti dovrebbero difendere il proprio Paese, se chiamati in causa.",
+  "Tutti dobbiamo imparare dai nostri anziani.",
+  "Se scoprissi che un/a conoscente ha una perversione sessuale insolita ma innocua, mi sentirei a disagio nei suoi confronti.",
+  "Tutti dovrebbero cercare di confortare le persone che stanno attraversando un momento difficile.",
+  "Quando le persone lavorano insieme per raggiungere un obiettivo comune, dovrebbero dividere equamente i frutti del lavoro, anche se alcuni hanno lavorato più duramente.",
+  "In una società equa, chi lavora duramente dovrebbe avere un tenore di vita più elevato.",
+  "Tutti dovrebbero sentirsi orgogliosi quando una persona della loro comunità vince in un concorso internazionale.",
+  "Credo che uno dei valori più importanti da insegnare ai bambini sia il rispetto per l'autorità.",
+  "Le persone dovrebbero cercare di usare medicine naturali piuttosto che quelle chimicamente identiche ma prodotte dall'uomo.",
+  "Mi addolora quando vedo qualcuno ignorare i bisogni di un altro essere umano.",
+  "Mi arrabbio quando nel mio Paese alcune persone hanno molti più soldi di altre.",
+  "Mi sento bene quando vedo che gli impostori vengono presi e puniti.",
+  "Credo che la forza di una squadra sportiva derivi dalla lealtà che i suoi membri mostrano l’un l’altro.",
+  "Credo che avere un leader forte sia positivo per la società.",
+  "Ammiro le persone che mantengono la loro verginità fino al matrimonio."
+];
+
 let participantData = {};
 
 let responses1 = [];
@@ -291,6 +342,7 @@ let responses2 = [];
 let responsesMAS = [];
 let responsesIRI = [];
 let responsesIdentita = [];
+let responsesMFI = [];
 
 function makeOptions(min, max) {
   const options = [];
@@ -504,11 +556,11 @@ function goToIdentita() {
     </div>
     <div id="err" class="error"></div>
     <div id="msg"></div>
-    <button onclick="submitAll()">Invia</button>
+    <button onclick="goToMFI()">Avanti</button>
   `;
 }
 
-async function submitAll() {
+function goToMFI() {
   responsesIdentita = [];
 
   for (let i = 0; i < questionnaireIdentita.length; i++) {
@@ -528,12 +580,45 @@ async function submitAll() {
     });
   }
 
+  document.getElementById("container").innerHTML = `
+    <h1>Questionario 6 - MFI</h1>
+    <div class="block-intro">${mfiIntro}</div>
+    <div class="questions-section">
+      ${renderQuestionList(questionnaireMFI, "mfi_", makeOptions(1, 6), "Fortemente in disaccordo", "Fortemente d’accordo")}
+    </div>
+    <div id="err" class="error"></div>
+    <div id="msg"></div>
+    <button onclick="submitAll()">Invia</button>
+  `;
+}
+
+async function submitAll() {
+  responsesMFI = [];
+
+  for (let i = 0; i < questionnaireMFI.length; i++) {
+    const selected = document.querySelector(`input[name="mfi_${i}"]:checked`);
+    if (!selected) {
+      document.getElementById("err").innerText = `Rispondi a tutte le domande del Questionario MFI. Manca la domanda ${i + 1}.`;
+      return;
+    }
+
+    responsesMFI.push({
+      ...participantData,
+      questionario: "MFI",
+      scala: "1-6",
+      item: i + 1,
+      domanda: questionnaireMFI[i],
+      risposta: selected.value
+    });
+  }
+
   const allResponses = [
     ...responses1,
     ...responses2,
     ...responsesMAS,
     ...responsesIRI,
-    ...responsesIdentita
+    ...responsesIdentita,
+    ...responsesMFI
   ];
 
   document.getElementById("err").innerText = "";
