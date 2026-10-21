@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ControlloAgent — Questionario post</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#1c3035;background:#f1f5f7}*{box-sizing:border-box}body{margin:0;padding:24px 12px}.wrap{max-width:850px;margin:auto}.panel{background:#fff;border:1px solid #dce5e9;border-radius:16px;padding:clamp(20px,4vw,38px);box-shadow:0 8px 28px #18354212}h1{margin:0 0 8px;font-size:clamp(24px,4vw,34px)}h2{font-size:20px}.muted{color:#51636a}.progress{height:8px;background:#e4edf1;border-radius:20px;overflow:hidden;margin:22px 0 28px}.bar{height:100%;background:#27718a;transition:width .2s}.field{margin:22px 0}label.fieldlabel{display:block;font-weight:650;margin-bottom:8px}input[type=text],input[type=number],select{width:100%;padding:13px;border:1px solid #a8bbc4;border-radius:9px;font:inherit}.question{padding:19px 0;border-bottom:1px solid #e2e9ec}.question legend{font-weight:650;line-height:1.5;margin-bottom:14px}.question fieldset{border:0;padding:0;margin:0}.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.scale.seven{grid-template-columns:repeat(7,minmax(0,1fr))}.scale label{position:relative;display:flex;justify-content:center;align-items:center;height:46px;border:1px solid #b7cbd3;border-radius:9px;cursor:pointer;font-weight:600}.scale input{position:absolute;opacity:0;width:1px;height:1px}.scale label:has(input:checked){background:#27718a;color:white;border-color:#27718a}.scale label:has(input:focus-visible){outline:3px solid #83b5ca;outline-offset:2px}.ends{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#536870;margin-top:8px}.ends span:last-child{text-align:right}.actions{display:flex;justify-content:space-between;gap:12px;margin-top:26px}button{border:0;border-radius:9px;padding:13px 22px;font:inherit;font-weight:650;cursor:pointer;background:#27718a;color:white}button.secondary{background:#e6eef1;color:#244450}button:disabled{opacity:.55;cursor:wait}.error{color:#b42318;min-height:24px;margin-top:16px}.success{padding:18px;background:#e4f4eb;border-radius:10px}.note{font-size:13px;color:#54666d;margin-top:20px}@media(max-width:430px){.scale,.scale.seven{gap:4px}.scale label{height:42px}.panel{padding:18px}.actions button{padding:12px 14px}}
+</style></head><body><main class="wrap"><section class="panel"><div id="app"></div></section></main>
+<script>
+'use strict';
+// Sostituisci con l'URL /exec del NUOVO deployment Apps Script ControlloAgent.
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-9YT5XZqzZItd5hm4mY-MLyhjMsPTpEcBjkAamRc9q216X3IFQojRwmOrKt6PWDrU/exec';
+const questionsAgreement = [
+'Quando le cose accadono improvvisamente mi agito molto.',
+'Le cose che non conosco mi infastidiscono.',
+'Le persone dovrebbero sempre pensare a cosa potrebbe accadere. Questo farà sì che non accadano cose brutte.',
+'Anche quando pianifichi molto bene le cose, un piccolo dettaglio può rovinare tutto.',
+'Voglio sempre sapere cosa mi accadrà in futuro.',
+'Non sopporto quando le cose accadono improvvisamente.',
+'Dovrei essere sempre preparato prima che accada qualcosa.',
+'Sentirmi incerto mi blocca nel fare la maggior parte delle cose.',
+'Quando non sono certo su cosa fare rimango paralizzato.',
+'Quando non so cosa accadrà, non riesco a fare le cose molto bene.',
+'Anche la più piccola preoccupazione può bloccarmi nel fare le cose.',
+'Devo stare lontano da tutte le cose di cui non sono certo.'
+];
+const questionsExperience = [
+'Avevo la sensazione di causare direttamente gli esiti del compito',
+'Gli eventi accadevano al di fuori del mio controllo',
+'Io e l\'altro giocatore ci siamo coordinati bene nel tempo',
+'Potevo anticipare/ritardare le azioni del partner',
+'La dinamica del compito era prevedibile',
+'Si sono verificati cambiamenti inaspettati.'
+];
+const state={partecipante:'',anni:'',sesso:'',risposte:Array(18).fill(null)};
+let step=0,submitting=false,completed=false;
+const sessionId=(()=>{const key='controlloagent_session';let val=sessionStorage.getItem(key);if(!val){val=crypto.randomUUID();sessionStorage.setItem(key,val);}return val;})();
+const app=document.getElementById('app');
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function item(text,index,max,left,right){const options=Array.from({length:max===5?5:7},(_,i)=>max===5?i+1:i);return `<div class="question"><fieldset><legend>${index+1}. ${esc(text)} *</legend><div class="scale ${max===6?'seven':''}">${options.map(n=>`<label><input type="radio" name="q${index}" value="${n}" ${state.risposte[index]===n?'checked':''}><span>${n}</span></label>`).join('')}</div><div class="ends"><span>${esc(left)}</span><span>${esc(right)}</span></div></fieldset></div>`;}
+function render(){if(completed){app.innerHTML='<h1>Risposte inviate</h1><p class="success" role="status">Grazie! Le risposte sono state salvate correttamente.</p>';return;}
+const titles=['Dati del partecipante','Affermazioni','Esperienza del compito'];
+let content='';
+if(step===0){content=`<div class="field"><label class="fieldlabel" for="participant">Inserisci il numero che ti è stato indicato *</label><input id="participant" type="text" maxlength="100" autocomplete="off" value="${esc(state.partecipante)}"></div><div class="field"><label class="fieldlabel" for="years">Anni</label><input id="years" type="number" min="0" max="120" step="1" value="${esc(state.anni)}"></div><div class="field"><label class="fieldlabel" for="sex">Sesso alla nascita</label><select id="sex"><option value="">Seleziona (facoltativo)</option><option value="Femmina" ${state.sesso==='Femmina'?'selected':''}>Femmina</option><option value="Maschio" ${state.sesso==='Maschio'?'selected':''}>Maschio</option></select></div>`;}
+if(step===1){content='<p class="muted">Di seguito troverai una serie di affermazioni. Per ciascuna, indica quanto sei d’accordo utilizzando la seguente scala: 1 = Per niente d’accordo; 2 = Poco d’accordo; 3 = Né d’accordo né in disaccordo; 4 = Abbastanza d’accordo; 5 = Completamente d’accordo. Non esistono risposte giuste o sbagliate: scegli semplicemente l’opzione che meglio rappresenta la tua opinione o esperienza personale.</p>'+questionsAgreement.map((q,i)=>item(q,i,5,'Per niente d’accordo','Completamente d’accordo')).join('');}
+if(step===2){content='<p class="muted">Rispondi a queste domande senza pensarci troppo. Non ci sono risposte giuste o sbagliate. Seleziona un valore da 0 a 6.</p>'+questionsExperience.map((q,i)=>item(q,i+12,6,i===3?'No':i===4?'0':'Mai',i===4?'6':'Sempre')).join('');}
+app.innerHTML=`<p class="muted">ControlloAgent · Sezione ${step+1} di 3</p><h1>${titles[step]}</h1><div class="progress"><div class="bar" style="width:${(step+1)/3*100}%"></div></div>${content}<p class="error" id="error" role="alert"></p><div class="actions">${step>0?'<button type="button" class="secondary" id="back">Indietro</button>':'<span></span>'}<button type="button" id="next">${step===2?'Invia risposte':'Avanti'}</button></div><p class="note">* Campo obbligatorio. Le risposte vengono inviate solo alla fine del questionario.</p>`;
+if(step===0){for(const id of ['participant','years','sex'])document.getElementById(id).addEventListener('input',save);}else{app.querySelectorAll('input[type=radio]').forEach(el=>el.addEventListener('change',save));}
+document.getElementById('next').addEventListener('click',next);if(step>0)document.getElementById('back').addEventListener('click',()=>{save();step--;render();window.scrollTo(0,0);});}
+function save(){if(step===0){state.partecipante=document.getElementById('participant').value.trim();state.anni=document.getElementById('years').value;state.sesso=document.getElementById('sex').value;}else{const start=step===1?0:12,end=step===1?12:18;for(let i=start;i<end;i++){const chosen=app.querySelector(`input[name="q${i}"]:checked`);state.risposte[i]=chosen?Number(chosen.value):null;}}}
+async function next(){if(submitting)return;save();const err=document.getElementById('error');if(step===0){if(!state.partecipante){err.textContent='Inserisci il numero partecipante.';return;}if(state.anni!==''&&(!Number.isInteger(Number(state.anni))||Number(state.anni)<0||Number(state.anni)>120)){err.textContent='Inserisci un numero di anni valido.';return;}}else{const start=step===1?0:12,end=step===1?12:18;for(let i=start;i<end;i++){if(state.risposte[i]===null){err.textContent=`Rispondi alla domanda ${i+1} prima di proseguire.`;return;}}}
+if(step<2){step++;render();window.scrollTo(0,0);return;}
+if(!SCRIPT_URL.startsWith('https://script.google.com/macros/s/')||!SCRIPT_URL.endsWith('/exec')){err.textContent='Inserisci prima il link Apps Script nella variabile SCRIPT_URL.';return;}
+submitting=true;const btn=document.getElementById('next');btn.disabled=true;btn.textContent='Invio in corso…';
+try{const response=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...state,sessionId})});if(!response.ok)throw Error('Risposta del server non valida');const result=await response.json();if(!result.ok)throw Error(result.error||'Salvataggio non confermato');completed=true;sessionStorage.removeItem('controlloagent_session');render();window.scrollTo(0,0);}catch(e){err.textContent='Salvataggio non confermato: '+e.message+'. Controlla il foglio prima di riprovare.';btn.disabled=false;btn.textContent='Riprova invio';}finally{submitting=false;}}
+render();
+</script></body></html>
