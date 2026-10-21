@@ -1,0 +1,94 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Questionari MAIA e BPQ</title>
+<style>
+:root{font-family:system-ui,Arial,sans-serif;color:#213440;background:#f2f6f8}*{box-sizing:border-box}body{margin:0;padding:20px 12px}.panel{max-width:850px;margin:auto;background:white;border:1px solid #dce6eb;border-radius:16px;padding:clamp(18px,4vw,38px)}h1{margin-top:0}.muted{color:#536771}.question{border:1px solid #dae4e9;border-radius:12px;padding:18px;margin:16px 0}.question legend{font-weight:650;line-height:1.5;padding:0 5px}.options{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.options label{cursor:pointer;flex:1;min-width:65px;text-align:center;border:1px solid #b8cbd4;border-radius:9px;padding:12px 7px}.options label:has(input:checked){background:#206e86;color:white}.options input{accent-color:#206e86}input:not([type=radio]),select{display:block;width:100%;padding:12px;border:1px solid #9db6c2;border-radius:8px;font:inherit;margin:7px 0 18px}.actions{display:flex;justify-content:space-between;gap:12px;margin-top:25px}button{background:#206e86;border:0;border-radius:8px;color:white;padding:13px 24px;font:inherit;cursor:pointer}button.secondary{background:#e7eff2;color:#213440}button:disabled{opacity:.6}.error{color:#b42318;min-height:25px}.progress{height:9px;background:#e5edf1;border-radius:20px;overflow:hidden;margin:20px 0}.bar{background:#206e86;height:100%;transition:width .2s}.success{background:#e6f5ed;padding:20px;border-radius:10px}
+</style></head><body><main class="panel"><div id="app"></div></main><script>
+'use strict';
+// Incolla qui l'URL /exec del NUOVO deployment Apps Script BPQ_MAIA.
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx4AK6ssVa0rmKBY4LH_00QlAJ_mJZFYeDXvFQ43-tOl61kWC6PZS-VT67X84c_DXupkw/exec';
+const maiaQuestions = [
+  "Quando provo dolore o disagio, cerco comunque di andare avanti con quello che stavo facendo",
+  "Provo ad ignorare il dolore",
+  "Allontano le sensazioni di fastidio focalizzandomi su qualcosa",
+  "Quando provo sensazioni corporee spiacevoli, mi occupo di qualcos'altro, così non devo sentirle",
+  "Quando sento un dolore fisico, mi agito",
+  "Inizio a preoccuparmi che ci sia qualcosa che non va se percepisco un disagio",
+  "Posso notare una sensazione corporea spiacevole senza preoccuparmene",
+  "Quando sono a disagio o provo dolore non riesco a togliermelo dalla mente",
+  "Posso prestare attenzione sul mio respiro senza farmi distrarre dalle cose che succedono attorno a me",
+  "Posso mantenere la consapevolezza delle mie sensazioni fisiche interiori anche se attorno a me avvengono molte cose",
+  "Posso ritrovare la consapevolezza del mio corpo se sono distratto",
+  "Riesco a mantenere la consapevolezza del mio corpo nella sua interezza anche quando una parte di me è dolorante o a disagio",
+  "Sono capace di focalizzarmi intenzionalmente sul mio corpo nella sua interezza",
+  "Noto di sentire il mio corpo diverso dopo un’esperienza serena",
+  "Noto che il mio respiro diventa libero e agevole quando mi sento a mio agio",
+  "Noto come il mio corpo cambia quando mi sento felice/gioioso",
+  "Nel mio corpo mi sento a casa",
+  "Sento che il mio corpo è un posto sicuro",
+  "Mi fido delle sensazioni del mio corpo"
+];
+const bpqBlock1 = [
+  "Avere gli occhi inumiditi o che stanno lacrimando",
+  "Una sensazione di gonfiore del mio corpo o di parti del mio corpo",
+  "Avere la pelle d’oca",
+  "Dolori di stomaco e intestino",
+  "Un senso di gonfiore o dilatazione dello stomaco",
+  "Sentire i palmi delle mani sudati",
+  "Sudorazione della fronte",
+  "Tremore delle labbra",
+  "Sudorazione delle ascelle",
+  "Quale sia la temperatura del viso (in particolare delle orecchie)"
+];
+const bpqBlock2 = [
+  "Ho difficoltà a coordinare la respirazione mentre mangio",
+  "Quando mangio, ho difficoltà a parlare",
+  "Ho difficoltà a coordinare la respirazione con il parlare",
+  "Quando mangio, ho difficoltà a coordinare la deglutizione, la masticazione e/o il succhiare con la respirazione",
+  "Ho una tosse persistente che interferisce con il mio parlare e mangiare",
+  "Mi sento soffocare quando mangio",
+  "Quando parlo, spesso sento che dovrei tossire o deglutire la saliva che ho in bocca",
+  "Quando respiro, sento di non riuscire ad avere abbastanza ossigeno",
+  "Ho acidità di stomaco",
+  "Ho un’indigestione",
+  "Dopo aver mangiato ho problemi digestivi",
+  "Ho la diarrea"
+];
+const bpqBlock2Intro = `
+Il sistema nervoso autonomo è la parte del suo sistema nervoso che regola il suo sistema cardiovascolare,
+respiratorio, digestivo e di regolazione della temperatura corporea. Inoltre, è coinvolto nell’esperienza e
+nell’espressione delle emozioni. Il sistema nervoso autonomo, in ognuno di noi, può funzionare in maniera
+diversa. Questa scala è stata sviluppata per misurare il modo in cui reagisce il suo sistema nervoso autonomo.
+Per favore, valuti quanto ciascuna delle seguenti affermazioni sia frequente per lei:
+`;
+
+const questions=[...maiaQuestions,...bpqBlock1,...bpqBlock2];
+const answers=Array(41).fill(null);
+const person={id:'',sesso:'',data_nascita:'',altezza:'',peso:''};
+const sessionId=(()=>{const k='bpq_maia_session';let v=sessionStorage.getItem(k);if(!v){v=crypto.randomUUID();sessionStorage.setItem(k,v)}return v})();
+let step=0,busy=false,complete=false;
+const app=document.getElementById('app');
+function esc(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
+function question(text,i){const maia=i<19;const opts=maia?[0,1,2,3,4,5]:['Mai','Occasionalmente','Spesso'];return `<fieldset class="question"><legend>${maia?i+1:i-18}. ${esc(text)} *</legend><div class="options">${opts.map(n=>`<label><input type="radio" name="q${i}" value="${n}" ${String(answers[i])===String(n)?'checked':''}> ${n}</label>`).join('')}</div>${maia?'<p class="muted">0 = Mai · 5 = Sempre</p>':''}</fieldset>`}
+function render(){
+if(complete){app.innerHTML='<h1>Risposte inviate</h1><p class="success">Grazie! Il salvataggio è stato confermato.</p>';return}
+const titles=['Dati partecipante','Questionario MAIA','Questionario BPQ — Blocco 1','Questionario BPQ — Blocco 2'];
+let content='';
+if(step===0)content=`<label>Numero partecipante *<input id="id" maxlength="100" value="${esc(person.id)}"></label><label>Sesso *<select id="sesso"><option value="">Seleziona</option>${['Maschio','Femmina','Altro','Preferisco non rispondere'].map(x=>`<option ${person.sesso===x?'selected':''}>${x}</option>`).join('')}</select></label><label>Data di nascita *<input type="date" id="data_nascita" value="${esc(person.data_nascita)}"></label><label>Altezza (cm) *<input type="number" id="altezza" min="1" max="300" step="0.1" value="${esc(person.altezza)}"></label><label>Peso (kg) *<input type="number" id="peso" min="1" max="500" step="0.1" value="${esc(person.peso)}"></label>`;
+if(step===1)content='<p>Di seguito troverai una lista di affermazioni. Per favore indica quanto spesso ciascuna affermazione si riferisce generalmente alla tua vita quotidiana.</p><p><b>Scala:</b> 0 = Mai; 5 = Sempre.</p>'+maiaQuestions.map((q,i)=>question(q,i)).join('');
+if(step===2)content='<p>Per favore, valuti il suo livello di consapevolezza per ciascuna delle caratteristiche descritte di seguito.</p><p><b>Nella maggior parte delle situazioni sono consapevole di:</b></p>'+bpqBlock1.map((q,i)=>question(q,i+19)).join('');
+if(step===3)content='<p>'+esc(bpqBlock2Intro)+'</p>'+bpqBlock2.map((q,i)=>question(q,i+29)).join('');
+app.innerHTML=`<p class="muted">Sezione ${step+1} di 4</p><h1>${titles[step]}</h1><div class="progress"><div class="bar" style="width:${(step+1)*25}%"></div></div>${content}<p id="err" class="error" role="alert"></p><div class="actions">${step?'<button class="secondary" id="back">Indietro</button>':'<span></span>'}<button id="next">${step===3?'Invia risposte':'Avanti'}</button></div>`;
+if(step===0){['id','sesso','data_nascita','altezza','peso'].forEach(k=>document.getElementById(k).addEventListener('input',save))}
+else app.querySelectorAll('input[type=radio]').forEach(el=>el.addEventListener('change',save));
+if(step)document.getElementById('back').onclick=()=>{save();step--;render();window.scrollTo(0,0)};
+document.getElementById('next').onclick=next;
+}
+function save(){if(step===0){for(const k of Object.keys(person))person[k]=document.getElementById(k).value.trim()}else{const [start,end]=step===1?[0,19]:step===2?[19,29]:[29,41];for(let i=start;i<end;i++){const x=app.querySelector(`input[name="q${i}"]:checked`);answers[i]=x?x.value:null}}}
+async function next(){if(busy)return;save();const err=document.getElementById('err');if(step===0){if(Object.values(person).some(x=>!x)){err.textContent='Compila tutti i dati iniziali.';return}if(!Number.isFinite(Number(person.altezza))||Number(person.altezza)<=0||!Number.isFinite(Number(person.peso))||Number(person.peso)<=0){err.textContent='Controlla altezza e peso.';return}}
+else{const [start,end]=step===1?[0,19]:step===2?[19,29]:[29,41];for(let i=start;i<end;i++)if(answers[i]===null){err.textContent='Manca la risposta alla domanda '+(i-start+1);return}}
+if(step<3){step++;render();window.scrollTo(0,0);return}
+if(!SCRIPT_URL.startsWith('https://script.google.com/macros/s/')||!SCRIPT_URL.endsWith('/exec')){err.textContent='Inserisci il nuovo URL Apps Script nel file HTML.';return}
+busy=true;const btn=document.getElementById('next');btn.disabled=true;btn.textContent='Invio in corso…';
+try{const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({sessionId,...person,risposte:answers})});if(!res.ok)throw Error('Risposta HTTP '+res.status);const x=await res.json();if(!x.ok)throw Error(x.error||'Errore salvataggio');complete=true;sessionStorage.removeItem('bpq_maia_session');render();window.scrollTo(0,0)}
+catch(e){err.textContent='Salvataggio non confermato: '+e.message+'. Verifica il foglio prima di riprovare.';btn.disabled=false;btn.textContent='Riprova invio'}finally{busy=false}}
+render();
+</script></body></html>
