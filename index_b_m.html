@@ -60,32 +60,60 @@ diversa. Questa scala è stata sviluppata per misurare il modo in cui reagisce i
 Per favore, valuti quanto ciascuna delle seguenti affermazioni sia frequente per lei:
 `;
 
-const questions=[...maiaQuestions,...bpqBlock1,...bpqBlock2];
-const answers=Array(41).fill(null);
+const traitQuestions = [
+  "Generalmente mi sento tranquillo/a.",
+  "Tendo a stancarmi facilmente.",
+  "Mi capita di piangere facilmente.",
+  "Vorrei essere felice come sembrano esserlo gli altri.",
+  "Spesso faccio fatica a prendere decisioni.",
+  "Di solito mi sento riposato/a.",
+  "Generalmente mi sento calmo/a e padrone/a di me.",
+  "Ho la sensazione che le difficoltà si accumulino e diventino difficili da superare.",
+  "Tendo a preoccuparmi eccessivamente per cose poco importanti.",
+  "Generalmente mi sento felice.",
+  "Spesso mi lascio influenzare dalle preoccupazioni.",
+  "Tendo ad avere poca fiducia in me stesso/a.",
+  "Generalmente mi sento sicuro/a.",
+  "Cerco di evitare le situazioni difficili.",
+  "Mi capita spesso di sentirmi triste o scoraggiato/a.",
+  "Generalmente mi sento soddisfatto/a.",
+  "Mi capita di preoccuparmi per cose che potrebbero andare male.",
+  "Tendo a prendere molto sul serio le delusioni.",
+  "Generalmente mi sento una persona equilibrata.",
+  "Quando penso ai miei problemi, tendo a sentirmi teso/a o agitato/a."
+];
+const questions=[...maiaQuestions,...bpqBlock1,...bpqBlock2,...traitQuestions];
+const answers=Array(61).fill(null);
 const person={id:'',sesso:'',data_nascita:'',altezza:'',peso:''};
 const sessionId=(()=>{const k='bpq_maia_session';let v=sessionStorage.getItem(k);if(!v){v=crypto.randomUUID();sessionStorage.setItem(k,v)}return v})();
 let step=0,busy=false,complete=false;
 const app=document.getElementById('app');
 function esc(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]))}
-function question(text,i){const maia=i<19;const opts=maia?[0,1,2,3,4,5]:['Mai','Occasionalmente','Spesso'];return `<fieldset class="question"><legend>${maia?i+1:i-18}. ${esc(text)} *</legend><div class="options">${opts.map(n=>`<label><input type="radio" name="q${i}" value="${n}" ${String(answers[i])===String(n)?'checked':''}> ${n}</label>`).join('')}</div>${maia?'<p class="muted">0 = Mai · 5 = Sempre</p>':''}</fieldset>`}
+function question(text,i){
+ const maia=i<19,trait=i>=41;
+ const opts=maia?[0,1,2,3,4,5]:trait?['Quasi mai','Qualche volta','Spesso','Quasi sempre']:['Mai','Occasionalmente','Spesso'];
+ const number=maia?i+1:trait?i-40:i-18;
+ return `<fieldset class="question"><legend>${number}. ${esc(text)} *</legend><div class="options">${opts.map(n=>`<label><input type="radio" name="q${i}" value="${n}" ${String(answers[i])===String(n)?'checked':''}> ${n}</label>`).join('')}</div>${maia?'<p class="muted">0 = Mai · 5 = Sempre</p>':''}</fieldset>`;
+}
 function render(){
 if(complete){app.innerHTML='<h1>Risposte inviate</h1><p class="success">Grazie! Il salvataggio è stato confermato.</p>';return}
-const titles=['Dati partecipante','Questionario MAIA','Questionario BPQ — Blocco 1','Questionario BPQ — Blocco 2'];
+const titles=['Dati partecipante','Questionario MAIA','Questionario BPQ — Blocco 1','Questionario BPQ — Blocco 2','Ansia di Tratto'];
 let content='';
 if(step===0)content=`<label>Numero partecipante *<input id="id" maxlength="100" value="${esc(person.id)}"></label><label>Sesso *<select id="sesso"><option value="">Seleziona</option>${['Maschio','Femmina','Altro','Preferisco non rispondere'].map(x=>`<option ${person.sesso===x?'selected':''}>${x}</option>`).join('')}</select></label><label>Data di nascita *<input type="date" id="data_nascita" value="${esc(person.data_nascita)}"></label><label>Altezza (cm) *<input type="number" id="altezza" min="1" max="300" step="0.1" value="${esc(person.altezza)}"></label><label>Peso (kg) *<input type="number" id="peso" min="1" max="500" step="0.1" value="${esc(person.peso)}"></label>`;
 if(step===1)content='<p>Di seguito troverai una lista di affermazioni. Per favore indica quanto spesso ciascuna affermazione si riferisce generalmente alla tua vita quotidiana.</p><p><b>Scala:</b> 0 = Mai; 5 = Sempre.</p>'+maiaQuestions.map((q,i)=>question(q,i)).join('');
 if(step===2)content='<p>Per favore, valuti il suo livello di consapevolezza per ciascuna delle caratteristiche descritte di seguito.</p><p><b>Nella maggior parte delle situazioni sono consapevole di:</b></p>'+bpqBlock1.map((q,i)=>question(q,i+19)).join('');
 if(step===3)content='<p>'+esc(bpqBlock2Intro)+'</p>'+bpqBlock2.map((q,i)=>question(q,i+29)).join('');
-app.innerHTML=`<p class="muted">Sezione ${step+1} di 4</p><h1>${titles[step]}</h1><div class="progress"><div class="bar" style="width:${(step+1)*25}%"></div></div>${content}<p id="err" class="error" role="alert"></p><div class="actions">${step?'<button class="secondary" id="back">Indietro</button>':'<span></span>'}<button id="next">${step===3?'Invia risposte':'Avanti'}</button></div>`;
+if(step===4)content='<p>Indica quanto frequentemente ciascuna affermazione descrive come ti senti generalmente. Questa è una versione illustrativa non validata, non la STAI-Y2 ufficiale.</p>'+traitQuestions.map((q,i)=>question(q,i+41)).join('');
+app.innerHTML=`<p class="muted">Sezione ${step+1} di 5</p><h1>${titles[step]}</h1><div class="progress"><div class="bar" style="width:${(step+1)*20}%"></div></div>${content}<p id="err" class="error" role="alert"></p><div class="actions">${step?'<button class="secondary" id="back">Indietro</button>':'<span></span>'}<button id="next">${step===4?'Invia risposte':'Avanti'}</button></div>`;
 if(step===0){['id','sesso','data_nascita','altezza','peso'].forEach(k=>document.getElementById(k).addEventListener('input',save))}
 else app.querySelectorAll('input[type=radio]').forEach(el=>el.addEventListener('change',save));
 if(step)document.getElementById('back').onclick=()=>{save();step--;render();window.scrollTo(0,0)};
 document.getElementById('next').onclick=next;
 }
-function save(){if(step===0){for(const k of Object.keys(person))person[k]=document.getElementById(k).value.trim()}else{const [start,end]=step===1?[0,19]:step===2?[19,29]:[29,41];for(let i=start;i<end;i++){const x=app.querySelector(`input[name="q${i}"]:checked`);answers[i]=x?x.value:null}}}
+function save(){if(step===0){for(const k of Object.keys(person))person[k]=document.getElementById(k).value.trim()}else{const [start,end]=step===1?[0,19]:step===2?[19,29]:step===3?[29,41]:[41,61];for(let i=start;i<end;i++){const x=app.querySelector(`input[name="q${i}"]:checked`);answers[i]=x?x.value:null}}}
 async function next(){if(busy)return;save();const err=document.getElementById('err');if(step===0){if(Object.values(person).some(x=>!x)){err.textContent='Compila tutti i dati iniziali.';return}if(!Number.isFinite(Number(person.altezza))||Number(person.altezza)<=0||!Number.isFinite(Number(person.peso))||Number(person.peso)<=0){err.textContent='Controlla altezza e peso.';return}}
-else{const [start,end]=step===1?[0,19]:step===2?[19,29]:[29,41];for(let i=start;i<end;i++)if(answers[i]===null){err.textContent='Manca la risposta alla domanda '+(i-start+1);return}}
-if(step<3){step++;render();window.scrollTo(0,0);return}
+else{const [start,end]=step===1?[0,19]:step===2?[19,29]:step===3?[29,41]:[41,61];for(let i=start;i<end;i++)if(answers[i]===null){err.textContent='Manca la risposta alla domanda '+(i-start+1);return}}
+if(step<4){step++;render();window.scrollTo(0,0);return}
 if(!SCRIPT_URL.startsWith('https://script.google.com/macros/s/')||!SCRIPT_URL.endsWith('/exec')){err.textContent='Inserisci il nuovo URL Apps Script nel file HTML.';return}
 busy=true;const btn=document.getElementById('next');btn.disabled=true;btn.textContent='Invio in corso…';
 try{const res=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({sessionId,...person,risposte:answers})});if(!res.ok)throw Error('Risposta HTTP '+res.status);const x=await res.json();if(!x.ok)throw Error(x.error||'Errore salvataggio');complete=true;sessionStorage.removeItem('bpq_maia_session');render();window.scrollTo(0,0)}
